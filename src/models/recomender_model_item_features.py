@@ -140,9 +140,6 @@ class RecommenderModelWithItemFeatures(tfrs.Model):
                 )
 
         # Objective for optimization
-        metrics = [tf.keras.metrics.TopKCategoricalAccuracy(k=x, name=f"top_{x}_categorical_accuracy") for x in
-                   config["top_k_accuracy_range"]]
-
         # Set up a retrieval task.
 
         # the retrieval task evaluates the FactorizedTopK metric at the given time with the items embeddings available
@@ -150,13 +147,13 @@ class RecommenderModelWithItemFeatures(tfrs.Model):
         # evaluation is required
         self.task = tfrs.tasks.Retrieval(
             metrics=tfrs.metrics.FactorizedTopK(candidates=items_ds.batch(config["batch_size"]).map(items_model),
-                                                metrics=metrics,
-                                                k=config["top_k_accuracy_range"][len(config["top_k_accuracy_range"])-1])
+                                                ks=config["top_k_accuracy_range"])
         )
 
         # Set up user and movie representations.
         self.user_model = user_model
         self.items_model = items_model
+        self.config = config
 
     def compute_loss(self, features: Dict[Text, tf.Tensor], training=False) -> tf.Tensor:
         # Define how the loss is computed.
@@ -164,7 +161,13 @@ class RecommenderModelWithItemFeatures(tfrs.Model):
         user_embeddings = self.user_model(features)
         items_embeddings = self.items_model(features)
 
-        return self.task(user_embeddings, items_embeddings, compute_metrics=not training)
+        weights = None
+        if self.config.get("weights") is not None:
+            weight_column = self.config.get("weights")
+            if features.get(weight_column) is not None:
+                weights = features.get(weight_column)
+
+        return self.task(user_embeddings, items_embeddings, sample_weight=weights, compute_metrics=not training)
 
     @staticmethod
     def get_lookup_layers(df: pd.DataFrame):

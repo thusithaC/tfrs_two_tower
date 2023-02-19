@@ -91,19 +91,13 @@ class RecommenderModel(tfrs.Model):
                     )
                 )
 
-        # Objective for optimization
-        metrics = [tf.keras.metrics.TopKCategoricalAccuracy(k=x, name=f"top_{x}_categorical_accuracy") for x in
-                   config["top_k_accuracy_range"]]
-
         # Set up a retrieval task.
-
         # the retrieval task evaluates the FactorizedTopK metric at the given time with the items embeddings available
         # at that time. i.e. .map accepts a items_model as a parameter, and items_model(...) is called when the
         # evaluation is required
         self.task = tfrs.tasks.Retrieval(
             metrics=tfrs.metrics.FactorizedTopK(candidates=items_ds.batch(config["batch_size"]).map(items_model),
-                                                metrics=metrics,
-                                                k=config["top_k_accuracy_range"][len(config["top_k_accuracy_range"])-1])
+                                                ks=config["top_k_accuracy_range"])
         )
 
         # Set up user and movie representations.
