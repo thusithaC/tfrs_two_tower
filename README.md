@@ -2,9 +2,10 @@
 
 
 ## What is Retrieval?
+Retrieval models are used to obtain a smaller (100s) of samples form 
 
 ## what is Tensorflow Recommenders (TFRS)
-
+https://www.tensorflow.org/recommenders
 
 ## What is the dataset in use?
 
@@ -13,9 +14,8 @@ Competition: Ali Mobile Recommendation Algorithm
 https://tianchi.aliyun.com/competition/entrance/1/information?from=oldUrl
 
 
-
-
 ## Model setup
+Two tower model with 2 different implementations.
 
 ### Event types:
 - 1: Click
@@ -29,4 +29,4 @@ We can either optimize the model for Clicks (engagement) or Purchases (revenue).
 
 ### Performance evaluation
 
-1. Case where 
+Top k 
